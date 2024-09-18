@@ -1,0 +1,102 @@
+import numpy as np
+
+Abrir archivo
+
+# Define the crops (Crop type)
+states = ['maiz', 'trigo XD', 'sorgo']
+
+Crear variables
+
+# Define the transition matrix
+# P represents the transition probabilities between states
+P = np.array([
+    [0.1111111, 0.8888889, 0.0000000],  # Seedling -> [Seedling, Vegetative, Flowering, Maturity]
+    [0.0000000, 0.0000000, 1.0000000],  # Vegetative -> [Seedling, Vegetative, Flowering, Maturity]
+    [1.0000000, 0.0000000, 0.0000000],  # Flowering -> [Seedling, Vegetative, Flowering, Maturity]
+])
+
+Creacion de tabla de frecuencias y Matrix de transicion de estados 
+
+# Initial state distribution (assuming we start with maiz)
+initial_state = np.array([1.0, 0.0, 0.0])
+
+Distribucion del estado inical
+
+def predict_next_state(current_state):
+    """Predict the next crop."""
+    current_state_index = states.index(current_state)
+    #Esta línea obtiene la fila de la matriz P que corresponde al estado actual (current_state_index). Esa fila contiene las probabilidades de transición del estado actual hacia todos los posibles estados siguientes.
+    next_state_probabilities = P[current_state_index]
+    #La función np.argmax() (de la biblioteca numpy) encuentra el índice del valor máximo en el array next_state_probabilities, que es la fila de probabilidades obtenida en la línea anterior.
+    next_state_index = np.argmax(next_state_probabilities)
+    return states[next_state_index]
+
+current_state = 'maiz'
+predicted_next_state = predict_next_state(current_state)
+print("Predicted next state:", predicted_next_state)
+
+Codigo de prediccion de estado siguiente. Aqui se comprueba que el estado siguiente es dependiente del estado anterior  cumpliendo el principio de un modelo de Markov. 
+
+from typing import ValuesView
+ValuesView(states)
+
+ValuesView(initial_state)
+
+
+def simulate_Crop_stages(initial_state, steps):
+    """Simulate the crops stages over the years."""
+    current_state_index = np.argmax(initial_state)
+    current_state = states[current_state_index]
+
+    growth_stages = [current_state]
+    for _ in range(steps):
+        next_state = predict_next_state(current_state)
+        growth_stages.append(next_state)
+        current_state = next_state
+
+    return growth_stages
+
+
+# Example usage
+initial_state = 'maiz'
+steps = 24  # Number of steps to simulate
+
+predicted_growth_stages = simulate_growth_stages(initial_state, steps)
+print("Predicted Growth Stages:", predicted_growth_stages)
+
+Simulador de cultivos por años. X= años da Y=cultivo
+
+def predict_future_state_probability(initial_state_vector, steps):
+    """Predict the probability distribution over states after a number of steps."""
+    future_state_vector = np.dot(initial_state_vector, np.linalg.matrix_power(P, steps))
+    return future_state_vector
+
+# Convert initial state to a vector
+initial_state_vector = np.array([1.0, 0.0, 0.0])
+#initial_state_vector = np.zeros(len(states))
+#initial_state_vector[states.index(initial_state)] = 1.0
+
+# Predict the probability distribution over states after a certain number of steps
+future_steps = 3
+future_state_probabilities = predict_future_state_probability(initial_state_vector, future_steps)
+print(f"Probability distribution after {future_steps} steps: {future_state_probabilities}")
+
+# Print the probability of each state
+for state, probability in zip(states, future_state_probabilities):
+    print(f"Probability of being in {state} after {future_steps} steps: {probability:.4f}")
+
+ValuesView(probability)
+
+def sumar_probabilidades(probability):
+    """Suma las probabilidades de un vector."""
+    return sum(probability)
+
+# Definir un vector de probabilidades
+probability = [0.89026064,0.01097393,0.09876542]
+
+# Llamar a la función y asignar el resultado a 'resultado'
+resultado = sumar_probabilidades(probability)
+print("La suma de las probabilidades es:", resultado)
+
+Confirmacion que la probabilidad da 1, para aumentar el resultado y acercar a 1, aumente el numero de decimales en la matrix de transicion de extados.
+
